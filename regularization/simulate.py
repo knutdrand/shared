@@ -3,17 +3,8 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression, Lasso, LogisticRegression
 
 class Evaluator:
-    simple_model=LinearRegression
-    regularized_model=Lasso
-    sigma=0.1
     regularization_parameters = [0.1*alpha for alpha in range(1, 31)]
-    name="LinearRegression"
 
-    def simulate_Y(self, X, beta):
-        EY = beta[0]+np.sum(beta[1:]*X, axis=1)
-        Y = EY + self.sigma*np.random.standard_normal(EY.shape)
-        return Y
-        
     def evaluate(self, n_samples, n_features):
         beta = np.random.rand(n_features+1)
         train_X, test_X = (np.random.standard_normal(size=(n_samples, n_features)) for _ in range(2))
@@ -43,17 +34,32 @@ class Evaluator:
         plt.legend()
         plt.title(self.name)
 
+
+class LinearEvaluator(Evaluator):
+    simple_model=LinearRegression
+    regularized_model=Lasso
+    name="LinearRegression"
+
+    sigma=0.1
+
+    def simulate_Y(self, X, beta):
+        EY = beta[0]+np.sum(beta[1:]*X, axis=1)
+        Y = EY + self.sigma*np.random.standard_normal(EY.shape)
+        return Y
+        
+
 class LogisticEvaluator(Evaluator):
     simple_model = lambda _: LogisticRegression(penalty="none")
     regularized_model = lambda _, alpha: LogisticRegression(penalty="l1", C=alpha, solver="liblinear")
     name="LogisticRegression"
+
     def simulate_Y(self, X, beta):
         eta = beta[0]+np.sum(beta[1:]*X, axis=1)
         p = np.exp(eta)/(1+np.exp(eta))
         return np.random.rand(p.size)<p
 
 
-Evaluator().main_plot()
+LinearEvaluator().main_plot()
 plt.show()
 LogisticEvaluator().main_plot()
 plt.show()
